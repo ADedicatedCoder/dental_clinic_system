@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Flaskapp</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+		integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+		crossorigin="anonymous"></script>
+
+	<script>
+		$(document).ready(function () {
+			$("input[name='action']").click(function () {
+				var radioValue = $("input[name='action']:checked").val();
+				if (radioValue == "query") {
+					document.getElementById("query_div").style = "display: block;"
+				}
+				else {
+					document.getElementById("query_div").style = "display: none;"
+				}
+			});
+
+			$("#actionForm").on("submit", function (event) {
+				var radioValue = $("input[name='action']:checked").val();
+				var queryValue = document.getElementById("specific_query").value;
+				if (radioValue == undefined) {
+					alert("Please select a value");
+				}
+				else if (radioValue == "query" && queryValue == "") {
+					alert("Please type a query to execute on the database");
+				}
+				event.preventDefault();
+			});
+		});
+	</script>
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-lg bg-body-tertiary">
+		<div class="container-fluid">
+			<a class="navbar-brand">CPS510 Team B7: Dental Clinic DBMS</a>
+			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+				aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse d-flex" id="navbarNavDropdown">
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<a class="nav-link active" aria-current="page" href="/">Home</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="/action">DB Actions</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+	<div class="container">
+		<br>
+		<h1>Database Actions Page</h1>
+		<form id="actionForm" action="/result" method="post">
+			<h4>Please select an action for the databases:</h4>
+			<div class="form-check">
+				<input class="form-check-input" type="radio" name="action" id="drop" value="drop">
+				<label class="form-check-label" for="drop">
+					Drop tables
+				</label>
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="radio" name="action" id="create" value="create">
+				<label class="form-check-label" for="create">
+					Create tables
+				</label>
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="radio" name="action" id="populate" value="populate">
+				<label class="form-check-label" for="populate">
+					Populate tables
+				</label>
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="radio" name="action" id="query" value="query">
+				<label class="form-check-label" for="query">
+					Specific query
+				</label>
+			</div>
+			<div id="query_div" style="display: none;">
+				<hr>
+				<div class="mb-3">
+					<label for="specific_query" class="form-label">Enter specific query!</label>
+					<input type="text" class="form-control" name="specific_query" id="specific_query">
+				</div>
+			</div>
+			<br>
+			<button type="submit" class="btn btn-primary">Submit</button>
+		</form>
+	</div>
+
+
+</body>
+
+</html>

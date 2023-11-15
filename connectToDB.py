@@ -1,7 +1,7 @@
 import sys
 import os
 import cx_Oracle
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for, request
 from dotenv import load_dotenv
 import datetime
 
@@ -32,6 +32,19 @@ tableNames = [
 app = Flask(__name__)
 
 
+@app.route("/result", methods=["GET", "POST"])
+def result_page():
+    output = request.form.to_dict()
+    action = output["action"]
+    query = output["query"]
+    return render_template("result.html", result=output)
+
+
+@app.route("/action", methods=["GET"])
+def action_page():
+    return render_template("action.html")
+
+
 @app.route("/")
 def index_page():
     data = get_tables()
@@ -39,24 +52,72 @@ def index_page():
     return render_template("index.html", rowData=data)
 
 
+def checkIfTablesExist():
+    # Checking if tables exist by table count
+    numTables = 0
+    for name in tableNames:
+        c.execute(
+            f"SELECT count(*) FROM all_objects WHERE object_type IN ('TABLE') AND object_name = '{name}'"
+        )
+        numTables += c.fetchall()[0][0]
+    return numTables > 0
+
+
+def create_tables():
+    tablesExist = checkIfTablesExist()
+
+    # Prevent repeated creation of tables
+    if tablesExist:
+        drop_tables()
+
+    with open("createTables.txt", "r") as file:
+        sql_queries = file.read().rstrip()
+    query_arr = [i.strip() for i in sql_queries.split(";") if len(i) > 0]
+
+    for query in query_arr:
+        c.execute(query)
+
+
+def populate_tables():
+    tablesExist = checkIfTablesExist()
+
+    # Prevent repeated creation of tables
+    if not tablesExist:
+        create_tables()
+
+    with open("populateTables.txt", "r") as file:
+        sql_queries = file.read().replace("\n", "")
+    query_arr = [i.strip() for i in sql_queries.split(";") if len(i) > 0]
+
+    for query in query_arr:
+        c.execute(query)
+
+
+def drop_tables():
+    for name in tableNames:
+        try:
+            c.execute(f"DROP TABLE {name}")
+        except Exception as e:
+            # Catches errors (mainly ORA-00942: Table doesn't exist error)
+            print(e.args[0])
+
+
 def get_tables():
     allTableRows = {}
     allTableCols = {}
 
-    # Checking if tables exist
-    numTables = 0
-    for name in tableNames:
-        c.execute(f"select count(*) from all_objects where object_type in ('TABLE','VIEW') and object_name = '{name}'")
-        numTables += c.fetchall()[0][0]
+    tablesExist = checkIfTablesExist()
 
-    if numTables > 0:
+    if tablesExist:
         for name in tableNames:
-            c.execute(f"select COLUMN_NAME from ALL_TAB_COLUMNS where TABLE_NAME='{name}' ORDER BY COLUMN_ID")
+            c.execute(
+                f"SELECT COLUMN_NAME FROM ALL_TAB_COLUMNS WHERE TABLE_NAME='{name}' ORDER BY COLUMN_ID"
+            )
             cols = []
             for row in c:
                 cols.append(row[0].replace("_", " ").title())
             allTableCols[name] = tuple(cols)
-            c.execute(f"select * from {name}")
+            c.execute(f"SELECT * FROM {name}")
             allTableRows[name] = [row for row in c]
 
         # Fixing CLOB Objects
