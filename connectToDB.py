@@ -1,9 +1,7 @@
-import sys
 import os
 import cx_Oracle
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, request
 from dotenv import load_dotenv
-import datetime
 
 load_dotenv()
 
@@ -58,6 +56,11 @@ def result_page():
 @app.route("/action")
 def action_page():
     return render_template("action.html")
+
+
+@app.route("/about")
+def about_page():
+    return render_template("about.html")
 
 
 @app.route("/")
