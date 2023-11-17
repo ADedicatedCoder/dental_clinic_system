@@ -9,20 +9,6 @@
 		integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 	<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
 		crossorigin="anonymous"></script>
-
-	<script>
-		$(document).ready(function () {
-			$("input[name='action']").click(function () {
-				var radioValue = $("input[name='action']:checked").val();
-				if (radioValue == "query") {
-					document.getElementById("query_div").style = "display: block;"
-				}
-				else {
-					document.getElementById("query_div").style = "display: none;"
-				}
-			});
-		});
-	</script>
 </head>
 
 <body>
@@ -48,22 +34,106 @@
 	<div class="container">
 		<br>
 		<h1>CPS510 Team B7: Dental Clinic DBMS</h1>
-		{% if result %}
+		{% if input["action"] == "reset" %}
 		<div class="alert alert-success" role="alert">
-			{% if result["action"] == "drop" %}
+			All tables were dropped, re-created, and populated with our own sample data! Please return to <a href="/"
+				class="alert-link">the main page</a> to see this.
+		</div>
+		{% elif input["action"] == "drop" and output["return_code"] == 0 %}
+		<div class="alert alert-success" role="alert">
 			All tables were dropped! Please return to <a href="/" class="alert-link">the main page</a> to see the overall
 			effect on the tables.
-			{% elif result["action"] == "create" %}
+		</div>
+		{% elif input["action"] == "drop" and output["return_code"] == -1 %}
+		<div class="alert alert-danger" role="alert">
+			The "Drop Tables" action failed!
+		</div>
+		<p>Please see the following error messages:</p>
+		<table class="table table-danger table-hover">
+			<thead>
+				<th>Query</th>
+				<th>Error message</th>
+			</thead>
+			{% for item in output["error_msgs"] %}
+			<tr>
+				<td>{{ item[0] }}</td>
+				<td>{{ item[1] }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		{% elif input["action"] == "create" and output["return_code"] == 0 %}
+		<div class="alert alert-success" role="alert">
 			All tables were created! Please return to <a href="/" class="alert-link">the main page</a> to see the overall
 			effect on the tables.
-			{% elif result["action"] == "populate" %}
+		</div>
+		{% elif input["action"] == "create" and output["return_code"] == -1 %}
+		<div class="alert alert-danger" role="alert">
+			The "Create Tables" action failed!
+		</div>
+		<p>Please see the following error messages:</p>
+		<table class="table table-danger table-hover table-responsive">
+			<thead>
+				<th>Query</th>
+				<th>Error message</th>
+			</thead>
+			{% for item in output["error_msgs"] %}
+			<tr>
+				<td>{{ item[0] }}</td>
+				<td>{{ item[1] }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		{% elif input["action"] == "populate" and output["return_code"] == 0 %}
+		<div class="alert alert-success" role="alert">
 			All tables were populated! Please return to <a href="/" class="alert-link">the main page</a> to see the overall
-			effect on
-			the tables.
-			{% elif result["action"] == "query" %}
-			{% endif %}
-			Action completed! Please return to <a href="/" class="alert-link">the main page</a> to see the overall effect on
-			the tables. {{ result }}
+			effect on the tables.
+		</div>
+		{% elif input["action"] == "populate" and output["return_code"] == -1 %}
+		<div class="alert alert-danger" role="alert">
+			The "Populate Tables" action failed!
+		</div>
+		<p>Please see the following error messages:</p>
+		<table class="table table-danger table-hover table-responsive">
+			<thead>
+				<th>Query</th>
+				<th>Error message</th>
+			</thead>
+			{% for item in output["error_msgs"] %}
+			<tr>
+				<td>{{ item[0] }}</td>
+				<td>{{ item[1] }}</td>
+			</tr>
+			{% endfor %}
+		</table>
+		{% elif input["action"] == "query" and output["return_code"] == 0 %}
+		{% if output["return_values"] %}
+		<div class="alert alert-success" role="alert">
+			Query <code>{{ input["specific_query"] }}</code> completed!
+		</div>
+		<p>The query returned the following rows:</p>
+		<table class="table table-success table-hover table-responsive">
+			{% for row in output["return_values"] %}
+			<tr>
+				{% for item in row %}
+				<td>{{ item }}</td>
+				{% endfor %}
+			</tr>
+			{% endfor %}
+		</table>
+		{% else %}
+		<div class="alert alert-success" role="alert">
+			Query <code>{{ input["specific_query"] }}</code> completed! However, your query returns 0 rows. Please make sure
+			the tables are populated or that your query returns rows.
+		</div>
+		{% endif %}
+		{% elif input["action"] == "query" and output["return_code"] == -1 %}
+		<div class="alert alert-danger" role="alert">
+			Query <code>{{ input["specific_query"] }}</code> failed! Oracle returned the following error message(s):
+			<ul>
+				{% for row in output["return_values"] %}
+				<li>{{ row }}</li>
+				{% endfor %}
+			</ul>
 		</div>
 		{% endif %}
 	</div>

@@ -34,13 +34,28 @@ app = Flask(__name__)
 
 @app.route("/result", methods=["GET", "POST"])
 def result_page():
-    output = request.form.to_dict()
-    action = output["action"]
-    query = output["query"]
-    return render_template("result.html", result=output)
+    form_input = request.form.to_dict()
+    action = form_input["action"]
+    output = {}
+    if action == "reset":
+        drop_tables()
+        create_tables()
+        populate_tables()
+        output["return_code"] = 0
+    elif action == "drop":
+        output = drop_tables()
+    elif action == "create":
+        output = create_tables()
+    elif action == "populate":
+        output = populate_tables()
+    elif action == "query":
+        query = form_input["specific_query"].replace(";", "")
+        output = executeQuery(query)
+
+    return render_template("result.html", input=form_input, output=output)
 
 
-@app.route("/action", methods=["GET"])
+@app.route("/action")
 def action_page():
     return render_template("action.html")
 
@@ -50,6 +65,25 @@ def index_page():
     data = get_tables()
 
     return render_template("index.html", rowData=data)
+
+
+def executeQuery(query):
+    status_code = {"return_code": 0, "return_values": []}
+
+    try:
+        c.execute(query)
+        result = c.fetchall()
+        print(result)
+        if len(result) > 0:
+            for row in result:
+                status_code["return_values"].append(row)
+    except Exception as e:
+        # Catches errors
+        status_code["return_values"].append(e.args[0])
+        if status_code["return_code"] == 0:
+            status_code["return_code"] = -1
+
+    return status_code
 
 
 def checkIfTablesExist():
@@ -64,42 +98,56 @@ def checkIfTablesExist():
 
 
 def create_tables():
-    tablesExist = checkIfTablesExist()
-
-    # Prevent repeated creation of tables
-    if tablesExist:
-        drop_tables()
-
     with open("createTables.txt", "r") as file:
         sql_queries = file.read().rstrip()
     query_arr = [i.strip() for i in sql_queries.split(";") if len(i) > 0]
 
+    status_code = {"return_code": 0, "error_msgs": []}
+
     for query in query_arr:
-        c.execute(query)
+        try:
+            c.execute(query)
+        except Exception as e:
+            # Catches errors (mainly ORA-00955: Table already exists)
+            status_code["error_msgs"].append((query, e.args[0]))
+            if status_code["return_code"] == 0:
+                status_code["return_code"] = -1
+
+    return status_code
 
 
 def populate_tables():
-    tablesExist = checkIfTablesExist()
-
-    # Prevent repeated creation of tables
-    if not tablesExist:
-        create_tables()
-
     with open("populateTables.txt", "r") as file:
         sql_queries = file.read().replace("\n", "")
     query_arr = [i.strip() for i in sql_queries.split(";") if len(i) > 0]
 
+    status_code = {"return_code": 0, "error_msgs": []}
+
     for query in query_arr:
-        c.execute(query)
+        try:
+            c.execute(query)
+        except Exception as e:
+            # Catches errors (Mainly ORA-00001: non-unique value in unique column)
+            status_code["error_msgs"].append((query, e.args[0]))
+            if status_code["return_code"] == 0:
+                status_code["return_code"] = -1
+
+    return status_code
 
 
 def drop_tables():
+    status_code = {"return_code": 0, "error_msgs": []}
+
     for name in tableNames:
         try:
             c.execute(f"DROP TABLE {name}")
         except Exception as e:
             # Catches errors (mainly ORA-00942: Table doesn't exist error)
-            print(e.args[0])
+            status_code["error_msgs"].append((f"DROP TABLE {name}", e.args[0]))
+            if status_code["return_code"] == 0:
+                status_code["return_code"] = -1
+
+    return status_code
 
 
 def get_tables():
