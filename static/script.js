@@ -1,4 +1,5 @@
 $(document).ready(function () {
+  // Render text box if user wants to input a specific query
   $("input[name='action']").click(function () {
     var radioValue = $("input[name='action']:checked").val();
     if (radioValue == "query") {
@@ -12,13 +13,12 @@ $(document).ready(function () {
 function formSubmit() {
   var radioValue = $("input[name='action']:checked").val();
   var queryValue = document.getElementById("specific_query").value;
-  if (radioValue == undefined) {
-    alert("Please select a value");
-    event.preventDefault();
-  } else if (radioValue == "query" && queryValue == "") {
+  // Make sure user inputs a query if "query" option is selected
+  if (radioValue == "query" && queryValue == "") {
     alert("Please type a query to execute on the database");
     event.preventDefault();
+  } else {
+    document.getElementById("helper").innerHTML =
+      "Note: Some commands may take a while to execute";
   }
-  document.getElementById("helper").innerHTML =
-    "Note: Some commands may take a while to execute";
 }
