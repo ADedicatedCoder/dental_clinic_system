@@ -9,6 +9,19 @@
 		integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
 	<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
 		crossorigin="anonymous"></script>
+
+	<script>
+		$(document).ready(function () {
+			// Render text box if user wants to input a specific query
+			var action = document.getElementById("action").innerHTML;
+			if (action == "close") {
+				var allLinks = document.getElementsByTagName("a");
+				for (var i = 0; i < allLinks.length; i++) {
+					allLinks[i].onclick = function () { return (false); };
+				}
+			};
+		});
+	</script>
 </head>
 
 <body>
@@ -36,9 +49,16 @@
 	</nav>
 	<div class="container">
 		<br>
-		<h1>Action Result</h1>
+		<h1>Database Action Result</h1>
 		<hr>
-		{% if input["action"] == "reset" %}
+		<div id="action" style="display: none;">{{ input["action"] }}</div>
+		{% if input["action"] == "close" %}
+		<div class="alert alert-success" role="alert">
+			The database connection was closed, you will not be able to perform any more actions or navigate to the Home page
+			without encountering errors. Please restart the program to continue modifying the database. All links are now
+			disabled.
+		</div>
+		{% elif input["action"] == "reset" %}
 		<div class="alert alert-success" role="alert">
 			All tables were dropped, re-created, and populated with our own sample data! Please return to <a href="/"
 				class="alert-link">the main page</a> to see this.

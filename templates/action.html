@@ -38,7 +38,7 @@
 	</nav>
 	<div class="container">
 		<br>
-		<h1>Database Actions Page</h1>
+		<h1>Database Actions</h1>
 		<hr>
 		<form id="actionForm" onsubmit="formSubmit()" action="/result" method="post">
 			<h4>Please select an action for the databases:</h4>
@@ -70,6 +70,12 @@
 				<input class="form-check-input" type="radio" name="action" id="query" value="query">
 				<label class="form-check-label" for="query">
 					Specific query
+				</label>
+			</div>
+			<div class="form-check">
+				<input class="form-check-input" type="radio" name="action" id="close" value="close">
+				<label class="form-check-label" for="close">
+					Close connection
 				</label>
 			</div>
 			<div id="query_div" style="display: none;">

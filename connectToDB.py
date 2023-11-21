@@ -54,6 +54,8 @@ def result_page():
             output = create_tables()
         elif action == "populate":
             output = populate_tables()
+        elif action == "close":
+            conn.close()
         elif action == "query":
             query = form_input["specific_query"].replace(";", "")
             output = executeQuery(query)
